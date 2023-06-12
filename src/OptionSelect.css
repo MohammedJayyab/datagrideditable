@@ -1,0 +1,32 @@
+/* MyComponent.css */
+.select-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .custom-select {
+   
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 14px;
+    background-color: #fff;
+    color: #333;
+    outline: none;
+    transition: border-color 0.3s ease;
+    position: relative;
+   
+     
+    max-height: 100px; /* Adjust the maximum height as per your preference */
+    overflow-y: auto;
+  }
+  
+ 
+  .custom-select:hover {
+    background-color: #e1ecf8;
+  }
+  .custom-select:hover,
+  .custom-select:focus {
+    border-color: #007bff;
+  }
+  

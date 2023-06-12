@@ -1,0 +1,11 @@
+.edit-cell {
+  background-color: red !important;
+  color: white !important;
+}
+
+.cell-container {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 4px 8px;
+}

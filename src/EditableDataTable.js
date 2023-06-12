@@ -95,7 +95,7 @@ const EditableTable = () => {
       var lastInputElement = inputElements[inputElements.length - 4];
       lastInputElement.focus();
     }
-  }, [lastAddedCell, withEmptyLine]);
+  }, [lastAddedCell, withEmptyLine]); // comment
 
   function maintainDate() {
     data.map((record) => {

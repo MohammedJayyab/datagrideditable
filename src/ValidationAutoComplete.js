@@ -26,7 +26,7 @@ export function getFormattedDate(dateString) {
       var year = "";
       if (dateParts[2]) {
         year = dateParts[2].padStart(2, "0");
-        year = "20" + year;
+        if (dateParts[2].length === 2) year = "20" + year;
       } else {
         year = new Date().getFullYear();
       }

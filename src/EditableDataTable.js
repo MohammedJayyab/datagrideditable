@@ -5,6 +5,7 @@ import React, { useState, useRef, useEffect } from "react";
 import {
   getFormattedDate,
   getNextEndDate,
+  isDate2LessDate1,
   isDateLessThanToDay,
   isValidDate,
 } from "./ValidationAutoComplete";
@@ -342,7 +343,7 @@ const EditableTable = () => {
     });
   }
 
-  function handleCellLostFocusDate(event, id) {
+  function handleCellLostFocusDate(event, id, rowIndex) {
     var value = event.target.value;
     if (value) {
       if (!isValidDate(value) && (value.includes("/") || value.includes("."))) {
@@ -366,10 +367,28 @@ const EditableTable = () => {
         return;
       }
       //resultDate = formatDateWithZero(resultDate);
-      if (isDateLessThanToDay(resultDate)) {
-        event.target.style.color = "red";
-      } else {
-        event.target.style.color = "black";
+
+      if (event.target.name === "dateTo") {
+        if (isDateLessThanToDay(resultDate)) {
+          event.target.style.color = "red";
+        } else {
+          event.target.style.color = "black";
+        }
+
+        /// To  less  than From
+        const dateFromElements = document.querySelectorAll(
+          'input[name="dateFrom"]'
+        );
+        //const lastDateFrom = dateFromElements[dateFromElements.length - 1];
+        let lastDateFrom = inputRefs.current[rowIndex][0];
+        if (isDate2LessDate1(lastDateFrom.value, resultDate)) {
+          event.target.style.backgroundColor = "rgb(165, 42, 42)";
+
+          lastDateFrom.style.backgroundColor = "rgb(246, 123, 123)";
+        } else {
+          event.target.style.backgroundColor = "transparent";
+          lastDateFrom.style.backgroundColor = "transparent";
+        }
       }
     }
   }
@@ -644,7 +663,9 @@ const EditableTable = () => {
                     onFocus={(event) =>
                       handleCellFocus(event, rowIndex, item.id)
                     }
-                    onBlur={(event) => handleCellLostFocusDate(event, item.id)}
+                    onBlur={(event) =>
+                      handleCellLostFocusDate(event, item.id, rowIndex)
+                    }
 
                     // onSelect={(event) => handleSelect(event)}
                   />
@@ -666,7 +687,9 @@ const EditableTable = () => {
                     onFocus={(event) =>
                       handleCellFocus(event, rowIndex, item.id)
                     }
-                    onBlur={(event) => handleCellLostFocusDate(event, item.id)}
+                    onBlur={(event) =>
+                      handleCellLostFocusDate(event, item.id, rowIndex)
+                    }
                   />
                 </td>
                 <td>

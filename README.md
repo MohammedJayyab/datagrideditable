@@ -1,3 +1,8 @@
+- Editable Data Table
+- Arrow navigation and focus
+![image](https://github.com/MohammedJayyab/datagrideditable/assets/14784715/9b28602e-275f-47f5-b6be-24f4c47bd694)
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

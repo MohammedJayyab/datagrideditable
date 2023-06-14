@@ -646,11 +646,11 @@ const EditableTable = () => {
           <tr>
             <th></th>
             <th style={{ display: "none" }}>ID</th>
-            <th>Von</th>
-            <th>Zum</th>
-            <th>Anzahl (Std)</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Count (Std)</th>
             <th>W/S</th>
-            <th>Lehrer</th>
+            <th>Teacher</th>
             <th>E/G (€)</th>
           </tr>
         </thead>

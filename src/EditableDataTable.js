@@ -5,6 +5,7 @@ import React, { useState, useRef, useEffect } from "react";
 import {
   getFormattedDate,
   getNextEndDate,
+  getWeeks,
   isDate2LessDate1,
   isDateLessThanToDay,
   isValidDate,
@@ -375,11 +376,6 @@ const EditableTable = () => {
           event.target.style.color = "black";
         }
 
-        /// To  less  than From
-        const dateFromElements = document.querySelectorAll(
-          'input[name="dateFrom"]'
-        );
-        //const lastDateFrom = dateFromElements[dateFromElements.length - 1];
         let lastDateFrom = inputRefs.current[rowIndex][0];
         if (isDate2LessDate1(lastDateFrom.value, resultDate)) {
           event.target.style.backgroundColor = "rgb(165, 42, 42)";
@@ -391,6 +387,37 @@ const EditableTable = () => {
         }
       }
     }
+  }
+  function handleCellLostFocusHoursWeekly(event, rowIndex) {
+    const spanName = "numberHoursSpan" + rowIndex;
+    const spanElement = document.querySelector('span[name="' + spanName + '"]');
+
+    let numHoursDefault = inputRefs.current[rowIndex][2];
+    let numHoursDefaultValue = numHoursDefault.value;
+
+    let numHoursWeekly = showNumberOfHoursAsToolTip(event, rowIndex);
+    if (numHoursDefaultValue !== numHoursWeekly) {
+      numHoursDefault.style.backgroundColor = "rgb(240, 230, 140)";
+      if (spanElement) {
+        spanElement.setAttribute(
+          "title",
+          "\u00A0\u00A0" + numHoursWeekly.toString() + "\u00A0\u00A0"
+        );
+        //class="tooltip"
+        spanElement.classList.add("tooltip");
+      }
+      //numHoursDefault.title = numHoursWeekly;
+    } else {
+      numHoursDefault.style.backgroundColor = "transparent";
+      //spanElement.removeAttribute("title");
+      spanElement.classList.remove("tooltip");
+    }
+  }
+  function showNumberOfHoursAsToolTip(event, rowIndex) {
+    let lastDateFrom = inputRefs.current[rowIndex][0];
+    let lastDateTo = inputRefs.current[rowIndex][1];
+    let numWeeks = getWeeks(lastDateFrom.value, lastDateTo.value);
+    return event.target.value * numWeeks;
   }
   function handleKeyUp() {}
   // function handleSelect(event) {
@@ -693,20 +720,22 @@ const EditableTable = () => {
                   />
                 </td>
                 <td>
-                  <input
-                    className="editable-cell"
-                    name="numberHours"
-                    style={{ width: "110px" }}
-                    autoComplete="off"
-                    ref={(ref) => (inputRefs.current[rowIndex][2] = ref)}
-                    value={item.numberHours}
-                    onChange={(event) => handleCellChange(event, item.id)}
-                    onKeyDown={(event) =>
-                      handleKeyDown(event, rowIndex, 2, item.id)
-                    }
-                    onClick={handleCellClick}
-                    onFocus={(event) => handleCellFocus(event, rowIndex)}
-                  />
+                  <span name={"numberHoursSpan" + rowIndex}>
+                    <input
+                      className="editable-cell"
+                      name="numberHours"
+                      style={{ width: "110px" }}
+                      autoComplete="off"
+                      ref={(ref) => (inputRefs.current[rowIndex][2] = ref)}
+                      value={item.numberHours}
+                      onChange={(event) => handleCellChange(event, item.id)}
+                      onKeyDown={(event) =>
+                        handleKeyDown(event, rowIndex, 2, item.id)
+                      }
+                      onClick={handleCellClick}
+                      onFocus={(event) => handleCellFocus(event, rowIndex)}
+                    />
+                  </span>
                 </td>
                 <td>
                   <input
@@ -725,6 +754,9 @@ const EditableTable = () => {
                     }
                     onClick={handleCellClick}
                     onFocus={(event) => handleCellFocus(event, rowIndex)}
+                    onBlur={(event) =>
+                      handleCellLostFocusHoursWeekly(event, rowIndex)
+                    }
                   />
                 </td>
                 <td>

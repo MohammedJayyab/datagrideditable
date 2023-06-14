@@ -90,3 +90,17 @@ export function isDate2LessDate1(dateString1, dateString2) {
   }
   return false;
 }
+
+export function getWeeks(dateString1, dateString2) {
+  if (isValidDate(dateString2) && isValidDate(dateString2)) {
+    const [day01, month01, year01] = getFullDateParts(dateString1);
+    const [day02, month02, year02] = getFullDateParts(dateString2);
+    var date1 = new Date(year01, month01, day01);
+    var date2 = new Date(year02, month02, day02);
+    const oneDay = 24 * 60 * 60 * 1000; // Number of milliseconds in a day
+    const diffInDays = Math.round((date2 - date1) / oneDay);
+    const weeks = Math.floor(diffInDays / 7);
+    return weeks;
+  }
+  return 0;
+}

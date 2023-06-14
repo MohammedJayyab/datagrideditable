@@ -14,102 +14,79 @@ export function isValidDate(str) {
   const regex = /^(\d{2})[/.](\d{2})[/.](\d{4})$/;
   return regex.test(str);
 }
-export function getDateRest(dateString) {
+export function getFormattedDate(dateString) {
   if (hasSlashOrDot(dateString)) {
     var separator = getSeparator(dateString);
     const dateParts = dateString.split(separator); // separator = '/'   or '.'
     if (dateParts.length >= 2 && dateParts[1] !== "") {
       var day = dateParts[0].padStart(2, "0");
       if (day === "00") day = "01";
+
       const month = dateParts[1].padStart(2, "0");
-
-      const year = new Date().getFullYear();
-
-      return `${day}/${month}/${year}`;
+      var year = "";
+      if (dateParts[2]) {
+        year = dateParts[2].padStart(2, "0");
+        year = "20" + year;
+      } else {
+        year = new Date().getFullYear();
+      }
+      return WithZero(`${day}/${month}/${year}`);
     }
   }
 }
 
-export function formatDateWithZero(dateString) {
+export function WithZero(dateString) {
   const parts = dateString.split("/");
   if (parts.length === 3 && parts[2] !== "") {
-    const day = parts[0].padStart(2, "0");
-    const month = parts[1].padStart(2, "0");
-    const year = parts[2];
-
+    const [day, month, year] = getFullDateParts(dateString);
     return `${day}/${month}/${year}`;
   }
   return dateString;
 }
 
-export function getFullDateIfValid(dateString) {
+export function getFullDateParts(dateString) {
   if (isValidDate(dateString)) {
     var separator = getSeparator(dateString);
     const dateParts = dateString.split(separator); // separator = '/'   or '.'
 
     const day = dateParts[0].padStart(2, "0");
     const month = dateParts[1].padStart(2, "0");
+    const year = dateParts[2].padStart(2, "0");
 
-    const year = new Date().getFullYear();
-    return `${day}/${month}/${year}`;
+    return [day, month, year];
   }
   return dateString;
 }
 
 export function getNextEndDate(dateString) {
-  var separator = getSeparator(dateString);
+  if (isValidDate(dateString)) {
+    const [day, month, year] = getFullDateParts(dateString);
 
-  const dateParts = dateString.split(separator); // separator = '/'   or '.'
+    const numDays = new Date(year, month, 0).getDate();
 
-  const day = dateParts[0].padStart(2, "0");
-  const month = dateParts[1].padStart(2, "0");
-
-  const year = new Date().getFullYear();
-
-  //const nextMonth = getNextMonth(month, year);
-  const numDays = getNumDays(month, year);
-
-  return `${numDays}/${month}/${year}`;
-}
-
-function getNumDays(month, year) {
-  return new Date(year, month, 0).getDate();
-}
-
-function getNextMonth(month, year) {
-  const date = new Date(year, month - 1);
-  date.setMonth(date.getMonth() + 1);
-  return date.getMonth() + 1;
-}
-function getNextYear(month, year) {
-  const date = new Date(year, month - 1);
-  date.setFullYear(date.getFullYear() + 1);
-  return date.getFullYear();
-}
-
-// number
-
-export function isNumberKey(evt) {
-  var charCode = evt.which ? evt.which : evt.keyCode;
-
-  if (charCode > 31 && (charCode < 48 || charCode > 57)) return false;
-
-  return true;
+    return `${numDays}/${month}/${year}`;
+  }
 }
 
 export function isDateLessThanToDay(dateString) {
   if (isValidDate(dateString)) {
-    var separator = getSeparator(dateString);
-    const dateParts = dateString.split(separator); // separator = '/'   or '.'
-
-    const day = dateParts[0].padStart(2, "0");
-    const month = dateParts[1].padStart(2, "0");
-
-    const year = new Date().getFullYear();
+    const [day, month, year] = getFullDateParts(dateString);
+    const inputDate = new Date(`${year}/${month}/${day}`);
     const today = new Date();
-    const inputDate = new Date(`${month}/${day}/${year}`);
-    // Compare the input date with today's date
+
     return inputDate < today;
+  }
+  return false;
+}
+export function isDate2LessDate1(dateString1, dateString2) {
+  if (isValidDate(dateString1) && isValidDate(dateString2)) {
+    const [day1, month1, year1] = getFullDateParts(dateString1);
+    const inputDate1 = new Date(`${year1}/${month1}/${day1}`);
+
+    const [day2, month2, year2] = getFullDateParts(dateString2);
+    const inputDate2 = new Date(`${year2}/${month2}/${day2}`);
+
+    return inputDate2 < inputDate1;
   }
   return false;
 }

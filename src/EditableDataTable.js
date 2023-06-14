@@ -3,8 +3,7 @@ import "./EditableDataTable.css";
 import "./OptionSelect.css";
 import React, { useState, useRef, useEffect } from "react";
 import {
-  formatDateWithZero,
-  getDateRest,
+  getFormattedDate,
   getNextEndDate,
   isDateLessThanToDay,
   isValidDate,
@@ -347,12 +346,8 @@ const EditableTable = () => {
     var value = event.target.value;
     if (value) {
       if (!isValidDate(value) && (value.includes("/") || value.includes("."))) {
-        var result = getDateRest(value);
+        var result = getFormattedDate(value);
         if (typeof result === "undefined") return; // return false and set color red as error
-        /*if (!isValidDate(result)) {
-          result = formatDateWithZero(result);
-        }*/
-        result = formatDateWithZero(result);
 
         if (event.target.name === "dateFrom") {
           let item = data.find((item) => item.id === id);
@@ -364,13 +359,13 @@ const EditableTable = () => {
 
         //tableRef.current.rows[rowIndex].cells[2].innerText = result;
       }
-      var resultDate = getDateRest(value);
+      var resultDate = getFormattedDate(value);
       if (typeof resultDate === "undefined") {
         event.target.style.color = "red";
         event.target.focus();
         return;
       }
-      resultDate = formatDateWithZero(resultDate);
+      //resultDate = formatDateWithZero(resultDate);
       if (isDateLessThanToDay(resultDate)) {
         event.target.style.color = "red";
       } else {

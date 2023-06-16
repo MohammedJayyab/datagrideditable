@@ -1,11 +1,13 @@
 import { getString, getValue, showDateOnlyFormatted } from "./Common/Utility";
 import "./EditableDataTable.css";
 import "./OptionSelect.css";
+import "./Button.css";
 import React, { useState, useRef, useEffect } from "react";
 import {
   getFormattedDate,
   getNextEndDate,
   getWeeks,
+  increaseDateByOneDay,
   isDate2LessDate1,
   isDateLessThanToDay,
   isValidDate,
@@ -70,33 +72,22 @@ const EditableTable = () => {
     { id: 2, priceName: "G (24)" },
   ];
 
-  let IsEscPressed = false;
   let branchId = 1,
     studentId = 50,
     courseId = 4;
+
+  let IsEscPressed = false;
+
   const inputRefs = useRef([]);
   const tableRef = useRef(null);
-  const [lastAddedCell, setLastAddedCell] = useState([]);
-  const [selectedRow, setSelectedRow] = useState(null);
-
-  const [withEmptyLine, setWithEmptyLine] = useState(true);
+  const [selectedRow, setSelectedRow] = useState([]);
   const [lastValue, setLastValue] = useState("");
-
-  //const [withEmptyLine, setWithEmptyLine] = useState(true);
-
+  const [lastIdValue, setLastIdValue] = useState("");
   useEffect(() => {
     maintainDate();
-    if (withEmptyLine) {
-      handleAdd();
-      setWithEmptyLine(false);
-    }
-    //handleAdd();
-    if (typeof lastAddedCell.current !== "undefined") {
-      var inputElements = document.querySelectorAll("input");
-      var lastInputElement = inputElements[inputElements.length - 4];
-      lastInputElement.focus();
-    }
-  }, [lastAddedCell, withEmptyLine]); // comment
+
+    handleAdd();
+  }, []); // comment
 
   function maintainDate() {
     data.map((record) => {
@@ -150,6 +141,10 @@ const EditableTable = () => {
 
   const handleKeyDown = (event, rowIndex, colIndex, id) => {
     const { key, target } = event;
+    if (IsEscPressed) {
+      target.select();
+      IsEscPressed = false;
+    }
     var chars = '!"§$%&/()=?``.,°^+-*=@#<>|{[]}';
     var charsDate = '!"§$%&()=?``,°^+-*=@#<>|{[]}';
     console.log(Key);
@@ -222,7 +217,7 @@ const EditableTable = () => {
         if (target.selectionStart === 0 && target.selectionEnd === 0) {
           if (colIndex > 0) {
             inputRefs.current[rowIndex][colIndex - 1]?.focus();
-            var component = inputRefs.current[rowIndex][colIndex - 1];
+            let component = inputRefs.current[rowIndex][colIndex - 1];
             if (!component?.innerHTML.includes("option"))
               inputRefs.current[rowIndex][colIndex - 1]?.select();
             IsEscPressed = false;
@@ -242,7 +237,7 @@ const EditableTable = () => {
         ) {
           if (colIndex < 5) {
             inputRefs.current[rowIndex][colIndex + 1]?.focus();
-            var component = inputRefs.current[rowIndex][colIndex + 1];
+            let component = inputRefs.current[rowIndex][colIndex + 1];
             if (!component?.innerHTML.includes("option"))
               inputRefs.current[rowIndex][colIndex + 1]?.select();
             IsEscPressed = false;
@@ -270,6 +265,13 @@ const EditableTable = () => {
 
         break;
       case "Enter":
+        if (IsEscPressed) {
+          target.focus();
+          //target.setSelectionRange(0, 0); // Set cursor at the beginning
+          //target.select();
+          IsEscPressed = false;
+          break;
+        }
         event.preventDefault();
         var nextRowIndex = rowIndex;
         var nextColIndex = colIndex;
@@ -321,9 +323,25 @@ const EditableTable = () => {
   };
 
   function handleCellFocus(event, rowIndex, id) {
+    var ID = tableRef.current?.rows[rowIndex]?.cells[1]?.innerText;
+    console.log(
+      "Value: ",
+      lastValue + " id:" + ID,
+      "#",
+      event.target.value + " id:" + ID
+    );
+    if (lastIdValue === event.target.value + ID && lastValue.length > 0) {
+      console.log(lastValue + ID, "#", event.target.value + ID);
+      if (event.target.tagName === "SELECT") {
+        event.target.focus();
+      } else {
+        event.target.select();
+      }
+      return;
+    }
     writeCellValue(rowIndex);
-    //event.preventDefault();
     setLastValue(event.target.value);
+    setLastIdValue(event.target.value + ID);
     if (event.target.name === "dateTo") {
       var item = data.find((item) => item.id === id);
 
@@ -331,7 +349,7 @@ const EditableTable = () => {
         var nextDate = getNextEndDate(item.dateFrom);
         handleCellChange(event, id, event.target.name, nextDate);
       } else {
-        event.target.focus();
+        //  event.target.focus();
       }
     }
 
@@ -377,13 +395,41 @@ const EditableTable = () => {
         }
 
         let lastDateFrom = inputRefs.current[rowIndex][0];
-        if (isDate2LessDate1(lastDateFrom.value, resultDate)) {
+
+        if (lastDateFrom && isDate2LessDate1(lastDateFrom.value, resultDate)) {
           event.target.style.backgroundColor = "rgb(165, 42, 42)";
 
           lastDateFrom.style.backgroundColor = "rgb(246, 123, 123)";
         } else {
           event.target.style.backgroundColor = "transparent";
           lastDateFrom.style.backgroundColor = "transparent";
+        }
+        //
+        var currItem = findItemById(id);
+        if (
+          getValue(currItem.numberHours) === 0 &&
+          getValue(currItem.numberHoursWeekly) === 0 &&
+          getValue(currItem.teacherId) === 0 &&
+          getValue(currItem.priceId) === 0
+        ) {
+          var lastItem = getBeforeLastItem(id);
+          if (lastItem && id.toString().includes("*")) {
+            setData((prevData) => {
+              return prevData.map((item) => {
+                if (item.id === id) {
+                  return {
+                    ...item,
+                    numberHours: getValue(lastItem.numberHours),
+                    numberHoursWeekly: getValue(lastItem.numberHoursWeekly),
+                    teacherId: lastItem.teacherId,
+                    priceId: lastItem.priceId,
+                  };
+                }
+                return item;
+              });
+            });
+            return;
+          }
         }
       }
     }
@@ -393,23 +439,29 @@ const EditableTable = () => {
     const spanElement = document.querySelector('span[name="' + spanName + '"]');
 
     let numHoursDefault = inputRefs.current[rowIndex][2];
-    let numHoursDefaultValue = numHoursDefault.value;
+    if (!numHoursDefault) return;
+    let numHoursDefaultValue = getValue(numHoursDefault.value);
 
     let numHoursWeekly = showNumberOfHoursAsToolTip(event, rowIndex);
-    if (numHoursDefaultValue !== numHoursWeekly) {
+    if (
+      numHoursDefaultValue !== numHoursWeekly &&
+      numHoursWeekly !== 0 &&
+      numHoursDefaultValue !== 0
+    ) {
       numHoursDefault.style.backgroundColor = "rgb(240, 230, 140)";
       if (spanElement) {
+        spanElement.classList.add("tooltip");
         spanElement.setAttribute(
           "title",
           "\u00A0\u00A0" + numHoursWeekly.toString() + "\u00A0\u00A0"
         );
         //class="tooltip"
-        spanElement.classList.add("tooltip");
+        //spanElement.classList.add("tooltip");
       }
       //numHoursDefault.title = numHoursWeekly;
     } else {
       numHoursDefault.style.backgroundColor = "transparent";
-      //spanElement.removeAttribute("title");
+      spanElement.removeAttribute("title");
       spanElement.classList.remove("tooltip");
     }
   }
@@ -419,45 +471,47 @@ const EditableTable = () => {
     let numWeeks = getWeeks(lastDateFrom.value, lastDateTo.value);
     return event.target.value * numWeeks;
   }
-  function handleKeyUp() {}
-  // function handleSelect(event) {
-  //   //event.preventDefault();
-  // }
 
+  function getBeforeLastItem(id) {
+    if (typeof id === "undefined") return null;
+    var NewId = getValue(id.toString().replace("*", 0)) - 1;
+    const itemWithMaxId = data.reduce((prev, current) => {
+      return getValue(prev.id.toString().replace("*", 0)) === NewId
+        ? prev
+        : current;
+    });
+    if (itemWithMaxId) {
+      return itemWithMaxId;
+    }
+    return null;
+  }
+  function getLastItem() {
+    const itemWithMaxId = data.reduce((prev, current) => {
+      return prev.id > current.id ? prev : current;
+    });
+    if (itemWithMaxId) {
+      return itemWithMaxId;
+    }
+    return null;
+  }
+
+  function findItemById(id) {
+    return data.find((item) => item.id === id);
+  }
   function handlePrintAll() {
     data.map((item, index) => {
       console.log("Item", index + 1, ":", item);
     });
   }
   function handleAdd() {
-    var table = document.getElementById("table");
-    console.log(table);
-    var currentRowIndex = table?.rows?.length - 1;
+    var lastDateTo = "",
+      DateFrom = "";
 
-    /*var Id = document.createElement("td");
-    Id.setAttribute("name", "id" + currentRowIndex);
-    Id.textContent = "";*/
-
-    var dateFrom = document.createElement("input");
-    dateFrom.setAttribute("name", "dateFrom" + currentRowIndex);
-    dateFrom.classList.add("editable-cell");
-
-    dateFrom.addEventListener("keydown", function (event) {
-      handleKeyDown(event, currentRowIndex, 0);
-    });
-    dateFrom.addEventListener("focus", function (event) {
-      handleCellFocus(event, currentRowIndex);
-    });
-
-    dateFrom.addEventListener("change", function (event) {
-      handleCellChange(event, -1, null, "");
-    });
-
-    // Add Ref
-    var nameRef = React.createRef();
-    nameRef.current = dateFrom;
-    inputRefs.current.push(nameRef);
-    // change data ++
+    const itemWithMaxId = getLastItem();
+    if (itemWithMaxId) {
+      lastDateTo = itemWithMaxId.dateTo;
+      DateFrom = increaseDateByOneDay(lastDateTo);
+    }
     var newId = getMaxId() + 1;
     setData([
       ...data,
@@ -466,7 +520,7 @@ const EditableTable = () => {
         branchId,
         studentId,
         courseId,
-        dateFrom: "",
+        dateFrom: DateFrom,
         dateTo: "",
         numberHours: "",
         numberHoursWeekly: "",
@@ -474,9 +528,6 @@ const EditableTable = () => {
         priceId: 0,
       },
     ]);
-    setLastAddedCell(nameRef);
-    nameRef.current.focus();
-    return null;
   }
 
   function getMaxId() {
@@ -638,19 +689,107 @@ const EditableTable = () => {
     if (lastRowCountEmpty > 0) return true; // no Empty
     return countEmpty > 0 ? true : false; // true if no empty
   }
+  function RemoveAllEmptyItems() {
+    const filteredData = data.filter(
+      (item) =>
+        item.dateFrom.trim() !== "" ||
+        item.dateTo.trim() !== "" ||
+        getValue(item.priceId.toString()) !== 0 ||
+        getValue(item.teacherId.toString()) !== 0 ||
+        getValue(item.numberHours.toString().trim()) !== 0 ||
+        getValue(item.numberHoursWeekly.toString().trim()) !== 0
+    );
+    setData(filteredData);
+  }
+  function IsValidItems() {
+    var isValid = true;
+    data.forEach((item, index) => {
+      var row = tableRef.current.rows[index + 1];
+      const dateFrom = row.cells[2].querySelector("input");
+      const dateTo = row.cells[3].querySelector("input");
+      const numHours = row.cells[4].querySelector("input");
+      const numHoursWeekly = row.cells[5].querySelector("input");
+      const teacherId = row.cells[6].querySelector("select");
+      const priceId = row.cells[7].querySelector("select");
+
+      dateFrom.style.backgroundColor = "transparent";
+      dateTo.style.backgroundColor = "transparent";
+      numHours.style.backgroundColor = "transparent";
+      numHoursWeekly.style.backgroundColor = "transparent";
+      teacherId.style.backgroundColor = "transparent";
+      priceId.style.backgroundColor = "transparent";
+
+      if (item.dateFrom.trim() === "" || !isValidDate(item.dateFrom)) {
+        if (dateFrom) dateFrom.style.backgroundColor = "yellow";
+        isValid = false;
+      }
+      if (
+        item.dateTo.trim() === "" ||
+        !isValidDate(item.dateTo) ||
+        isDate2LessDate1(item.dateFrom, item.dateTo)
+      ) {
+        if (dateTo) dateTo.style.backgroundColor = "yellow";
+        isValid = false;
+      }
+      if (getValue(item.numberHours) <= 0) {
+        if (numHours) numHours.style.backgroundColor = "yellow";
+        isValid = false;
+      }
+      if (getValue(item.numberHoursWeekly) <= 0) {
+        if (numHoursWeekly) numHoursWeekly.style.backgroundColor = "yellow";
+        isValid = false;
+      }
+      if (getValue(item.teacherId) === 0) {
+        if (teacherId) teacherId.style.backgroundColor = "yellow";
+        isValid = false;
+      }
+      if (getValue(item.priceId) === 0) {
+        if (priceId) priceId.style.backgroundColor = "yellow";
+        isValid = false;
+      }
+    });
+    return isValid;
+  }
+  function handleCheckAll() {
+    RemoveAllEmptyItems();
+    IsValidItems();
+  }
+
+  function handleSave() {
+    RemoveAllEmptyItems();
+    if (IsValidItems()) {
+      // parse data, convert to date yyyy-mm-dd , integer : 01 --> 1
+      // Do Save API
+    }
+  }
 
   return (
     <div className="containers">
+      <div>
+        <button className="button" onClick={handleAdd}>
+          Add
+        </button>
+        <button className="button" onClick={handlePrintAll}>
+          PrintAll
+        </button>
+        <button className="button" onClick={handleCheckAll}>
+          Check
+        </button>
+        <button className="button" onClick={handleSave}>
+          Save
+        </button>
+      </div>
+      <br />
       <table id="table" className="tablex" ref={tableRef}>
         <thead className="solid-header">
           <tr>
             <th></th>
             <th style={{ display: "none" }}>ID</th>
-            <th>From</th>
-            <th>To</th>
-            <th>Count (Std)</th>
+            <th>Von</th>
+            <th>Zum</th>
+            <th>Anzahl(Std)</th>
             <th>W/S</th>
-            <th>Teacher</th>
+            <th>Lehrer</th>
             <th>E/G (€)</th>
           </tr>
         </thead>
@@ -675,6 +814,7 @@ const EditableTable = () => {
                 <td style={{ display: "none" }}>{item.id}</td>
                 <td>
                   <input
+                    autoFocus={index === data.length - 1}
                     name="dateFrom"
                     className="editable-cell"
                     style={{ width: "80px" }}
@@ -693,7 +833,9 @@ const EditableTable = () => {
                     onBlur={(event) =>
                       handleCellLostFocusDate(event, item.id, rowIndex)
                     }
-
+                    onDragStart={(e) => {
+                      e.preventDefault();
+                    }}
                     // onSelect={(event) => handleSelect(event)}
                   />
                 </td>
@@ -717,6 +859,9 @@ const EditableTable = () => {
                     onBlur={(event) =>
                       handleCellLostFocusDate(event, item.id, rowIndex)
                     }
+                    onDragStart={(e) => {
+                      e.preventDefault();
+                    }}
                   />
                 </td>
                 <td>
@@ -733,7 +878,12 @@ const EditableTable = () => {
                         handleKeyDown(event, rowIndex, 2, item.id)
                       }
                       onClick={handleCellClick}
-                      onFocus={(event) => handleCellFocus(event, rowIndex)}
+                      onFocus={(event) =>
+                        handleCellFocus(event, rowIndex, item.id)
+                      }
+                      onDragStart={(e) => {
+                        e.preventDefault();
+                      }}
                     />
                   </span>
                 </td>
@@ -753,14 +903,20 @@ const EditableTable = () => {
                       handleKeyDown(event, rowIndex, 3, item.id)
                     }
                     onClick={handleCellClick}
-                    onFocus={(event) => handleCellFocus(event, rowIndex)}
+                    onFocus={(event) =>
+                      handleCellFocus(event, rowIndex, item.id)
+                    }
                     onBlur={(event) =>
                       handleCellLostFocusHoursWeekly(event, rowIndex)
                     }
+                    onDragStart={(e) => {
+                      e.preventDefault();
+                    }}
                   />
                 </td>
                 <td>
                   <select
+                    autoComplete="on"
                     name="teacherId"
                     className="custom-select"
                     style={{ width: "200px", cursor: "pointer" }}
@@ -768,7 +924,9 @@ const EditableTable = () => {
                     onChange={(event) => handleCellChange(event, item.id)}
                     value={item.teacherId}
                     ref={(ref) => (inputRefs.current[rowIndex][4] = ref)}
-                    onFocus={(event) => handleCellFocus(event, rowIndex)}
+                    onFocus={(event) =>
+                      handleCellFocus(event, rowIndex, item.id)
+                    }
                     onKeyDown={(event) =>
                       handleKeyDownSelect(event, rowIndex, 4)
                     }
@@ -798,7 +956,9 @@ const EditableTable = () => {
                     onChange={(event) => handleCellChange(event, item.id)}
                     value={item.priceId}
                     ref={(ref) => (inputRefs.current[rowIndex][5] = ref)}
-                    onFocus={(event) => handleCellFocus(event, rowIndex)}
+                    onFocus={(event) =>
+                      handleCellFocus(event, rowIndex, item.id)
+                    }
                     onKeyDown={(event) =>
                       handleKeyDownSelect(event, rowIndex, 5)
                     }
@@ -823,8 +983,6 @@ const EditableTable = () => {
           })}
         </tbody>
       </table>
-      <button onClick={handleAdd}>Add</button>
-      <button onClick={handlePrintAll}>PrintAll</button>
     </div>
   );
 };

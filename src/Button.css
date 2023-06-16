@@ -1,0 +1,29 @@
+.button {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 1px;
+    border: none;
+    border-radius: 4px;
+    background-color: #f0f0f0;
+    color: #333;
+    font-size: 16px;
+    font-family: 'Poppins', sans-serif;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .button:hover {
+    background-color: #ddd;
+  }
+  
+  .button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .button:active {
+    background-color: #ccc;
+  }
+  

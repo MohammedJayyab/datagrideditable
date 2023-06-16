@@ -38,7 +38,7 @@ body {
     border:1px rgb(226, 222, 222) solid;
     text-align: left; 
 
-    background-color: rgb(253, 253, 253);
+    background-color: rgb(238, 239, 241);
     color: rgb(4, 4, 4);
     
   }     
@@ -70,15 +70,15 @@ body {
   
   .tablex tr.selected input,
   .tablex tr.selected select  {
-    background-color: rgb(0, 120, 215);
-    color: white;
+    background-color: rgb(0, 120, 215) !important; 
+    color: white !important;
     border-color: rgb(0, 120, 215);;
   }
   .solid-header {
     background-color: rgb(40, 71, 91);
   }
  td:first-child{
-  background-color: rgb(254, 254, 254);
+  background-color: rgb(238, 239, 241);
  }  
  
  /* .tablex td.last-cell{
@@ -130,8 +130,7 @@ body {
   background-color: #f4f6de;
 }
 
-
-  input {
+input {
     font-size: 14px;
     background-color: transparent;     
     /* width: 100%;   */
@@ -150,9 +149,9 @@ body {
     /* background-color: #fafaca; */
   }
   
-  /* * {
+   /* * {
     pointer-events: none;
-  } */
+  }  */
   
   /*  tool tip */
   .tooltip {
@@ -173,9 +172,9 @@ body {
     white-space: nowrap;
     visibility: hidden;
     opacity: 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Add box shadow */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); 
     z-index: 9999; /* Ensure the tooltip appears on top */
-    /* transition: visibility 0s, opacity 0.3s linear; */
+    transition: visibility 0s, opacity 0.3s linear;
   }
   
   .tooltip:hover::after {
@@ -185,5 +184,6 @@ body {
   
   .tooltip.empty::after {
     display: none;
+    opacity: 1;
   }
   

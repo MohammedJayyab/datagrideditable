@@ -1,3 +1,5 @@
+import { getValue } from "./Common/Utility";
+
 function hasSlashOrDot(str) {
   return str.includes("/") || str.includes(".");
 }
@@ -10,19 +12,42 @@ function getSeparator(str) {
     return null;
   }
 }
-export function isValidDate(str) {
+export function isValidDate(dateString) {
+  //console.log(dateString);
   const regex = /^(\d{2})[/.](\d{2})[/.](\d{4})$/;
-  return regex.test(str);
+  const validReg = regex.test(dateString);
+  if (validReg) {
+    const [day, month, year] = getFullDateParts(dateString);
+    const isValid = isValidAsDayMonthYear(`${day}/${month}/${year}`);
+    return validReg && isValid;
+  }
+  return validReg;
+}
+export function isValidAsDayMonthYear(dateString) {
+  var dateParts = dateString.split(getSeparator(dateString));
+  var day = parseInt(dateParts[0], 10);
+  var month = parseInt(dateParts[1], 10);
+  var year = parseInt(dateParts[2], 10);
+
+  var date = new Date(year, month - 1, day);
+
+  return (
+    date.getDate() === day &&
+    date.getMonth() === month - 1 &&
+    date.getFullYear() === year
+  );
 }
 export function getFormattedDate(dateString) {
-  if (hasSlashOrDot(dateString)) {
+  if (hasSlashOrDot(dateString) && dateString.length <= 10) {
     var separator = getSeparator(dateString);
     const dateParts = dateString.split(separator); // separator = '/'   or '.'
     if (dateParts.length >= 2 && dateParts[1] !== "") {
       var day = dateParts[0].padStart(2, "0");
-      if (day === "00") day = "01";
+      if (getValue(day) === 0 || day.length > 2) day = "01";
 
-      const month = dateParts[1].padStart(2, "0");
+      var month = dateParts[1].padStart(2, "0");
+      if (getValue(month) === 0 || month.length > 2) month = "01";
+
       var year = "";
       if (dateParts[2]) {
         year = dateParts[2].padStart(2, "0");
@@ -45,17 +70,17 @@ export function WithZero(dateString) {
 }
 
 export function getFullDateParts(dateString) {
-  if (isValidDate(dateString)) {
-    var separator = getSeparator(dateString);
-    const dateParts = dateString.split(separator); // separator = '/'   or '.'
+  //if (isValidDate(dateString)) {
+  var separator = getSeparator(dateString);
+  const dateParts = dateString.split(separator); // separator = '/'   or '.'
 
-    const day = dateParts[0].padStart(2, "0");
-    const month = dateParts[1].padStart(2, "0");
-    const year = dateParts[2].padStart(2, "0");
+  const day = dateParts[0].padStart(2, "0");
+  const month = dateParts[1].padStart(2, "0");
+  const year = dateParts[2].padStart(2, "0");
 
-    return [day, month, year];
-  }
-  return dateString;
+  return [day, month, year];
+  // }
+  //return dateString;
 }
 
 export function getNextEndDate(dateString) {
@@ -103,4 +128,24 @@ export function getWeeks(dateString1, dateString2) {
     return weeks;
   }
   return 0;
+}
+
+export function increaseDateByOneDay(dateString) {
+  if (isValidDate(dateString)) {
+    const [day, month, year] = getFullDateParts(dateString);
+    const date = new Date(
+      getValue(year),
+      getValue(month) - 1,
+      getValue(day) + 1
+    );
+    // date.setDate(date.getDate() + 1);
+    var dayNew = date.getDate();
+    var monthNew = date.getMonth() + 1;
+    var yearNew = date.getFullYear();
+    var newDate = WithZero(`${dayNew}/${monthNew}/${yearNew}`);
+    if (isValidDate(newDate)) {
+      return newDate;
+    }
+  }
+  return "";
 }

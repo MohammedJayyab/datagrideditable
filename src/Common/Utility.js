@@ -169,13 +169,6 @@ function generateUUID() {
 export function getColumnNames(columns) {
   return columns.map((column) => column.headerName);
 }
-function isNullOrWhiteSpace(str) {
-  if (!str) {
-    return true;
-  } else {
-    return false;
-  }
-}
 
 export {
   slice,
